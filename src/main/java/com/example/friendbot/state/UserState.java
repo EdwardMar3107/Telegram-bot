@@ -6,32 +6,32 @@ public enum UserState {
     IDLE,
 
     //Добавление друга
-    ADD_FRIEND_MENU,              // Выбор способа добавления (контакт / вручную)
-    ADDING_FRIEND_NAME,           // Ожидаем имя друга (ручной ввод)
-    ADDING_FRIEND_CHAT_ID,        // Ожидаем Telegram ID / username
-    WAITING_FRIEND_CONTACT,       // Ожидаем отправленный контакт из Telegram
+    ADD_FRIEND_MENU,
+    ADDING_FRIEND_NAME,
+    ADDING_FRIEND_CHAT_ID,
+    WAITING_FRIEND_CONTACT,
 
     // Добавление места
-    SELECTING_FRIEND_FOR_PLACE,   // Выбор друга, к которому добавляем место
-    ADDING_PLACE_NAME,            // Ввод названия места
-    ADDING_PLACE_ADDRESS,         // Ввод адреса / описания места
+    SELECTING_FRIEND_FOR_PLACE,
+    ADDING_PLACE_NAME,
+    ADDING_PLACE_ADDRESS,
 
     //Создание и отправка инвайта
-    INVITE_SELECT_FRIEND,         // Выбор друга для приглашения
-    INVITE_SELECT_PLACE,          // Выбор места
-    INVITE_ENTER_DATE,            // Ввод даты
-    INVITE_ENTER_TIME,            // Ввод времени
-    INVITE_CONFIRM,               // Подтверждение перед отправкой
+    INVITE_SELECT_FRIEND,
+    INVITE_SELECT_PLACE,
+    INVITE_ENTER_DATE,
+    INVITE_ENTER_TIME,
+    INVITE_CONFIRM,
 
     //Просмотр информации
-    VIEW_MY_FRIENDS,              // Просмотр списка всех друзей
-    VIEW_FRIEND_PLACES,           // Просмотр мест у конкретного друга
-    VIEW_MY_INVITES_SENT,         // Просмотр отправленных инвайтов
-    VIEW_MY_INVITES_RECEIVED,     // Просмотр полученных инвайтов
+    VIEW_MY_FRIENDS,
+    VIEW_FRIEND_PLACES,
+    VIEW_MY_INVITES_SENT,
+    VIEW_MY_INVITES_RECEIVED,
 
     //Универсальные состояния
-    WAITING_TEXT_INPUT,           // Универсальное состояние для любого текстового ввода
-    CONFIRMATION_PENDING;          // Ожидание подтверждения какого-либо действия
+    WAITING_TEXT_INPUT,
+    CONFIRMATION_PENDING;
 
     public boolean isAddingFriend() {
         return this == ADD_FRIEND_MENU ||
@@ -59,6 +59,10 @@ public enum UserState {
                 this == VIEW_FRIEND_PLACES ||
                 this == VIEW_MY_INVITES_SENT ||
                 this == VIEW_MY_INVITES_RECEIVED;
+    }
+
+    public boolean isIdle() {
+        return this == IDLE;
     }
 }
 
