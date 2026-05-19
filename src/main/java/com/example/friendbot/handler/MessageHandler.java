@@ -1,5 +1,6 @@
 package com.example.friendbot.handler;
 
+import com.example.friendbot.bot.FriendInviteBot;
 import com.example.friendbot.model.BotUser;
 import com.example.friendbot.service.BotUserService;
 import com.example.friendbot.service.KeyboardService;
