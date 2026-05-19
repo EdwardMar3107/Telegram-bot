@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
@@ -37,7 +38,7 @@ public class MessageHandler {
             handleByState(user, text);
         } catch (Exception e) {
             log.error("Error handling message from {}", chatId, e);
-            sendText(chatId, "⚠️ Произошла ошибка. Попробуйте ещё раз.");
+            sendMessage(chatId, "⚠️ Произошла ошибка. Попробуйте ещё раз.");
         }
     }
 
@@ -52,7 +53,7 @@ public class MessageHandler {
                 break;
 
             default:
-                sendText(chatId, "Я пока не обрабатываю это состояние.");
+                sendMessage(chatId, "Я пока не обрабатываю это состояние.");
                 resetToIdle(user);
         }
     }
@@ -62,46 +63,48 @@ public class MessageHandler {
 
         switch (text) {
             case "/start":
-                sendText(chatId, "👋 Добро пожаловать в Friendly Invite Bot!\n\n" +
+                sendMessage(chatId, "👋 Добро пожаловать в Friendly Invite Bot!\n\n" +
                                 "Я помогаю договариваться о встречах с друзьями.",
                         keyboardService.getMainMenuKeyboard());
                 break;
 
             case "👥 Мои друзья":
-                sendText(chatId, "Выберите друга:", keyboardService.getFriendsSelectionKeyboard(chatId));
+                sendMessage(chatId, "Выберите друга:", keyboardService.getFriendsSelectionKeyboard(chatId));
                 user.setState(UserState.VIEW_MY_FRIENDS);
                 break;
 
             case "➕ Добавить друга":
-                sendText(chatId, "Выберите способ добавления друга:", keyboardService.getCancelKeyboard());
+                sendMessage(chatId, "Выберите способ добавления друга:", keyboardService.getCancelKeyboard());
                 user.setState(UserState.ADD_FRIEND_MENU);
                 break;
 
             case "📨 Новое приглашение":
-                sendText(chatId, "Кому хочешь отправить приглашение?",
+                sendMessage(chatId, "Кому хочешь отправить приглашение?",
                         keyboardService.getFriendsSelectionKeyboard(chatId));
                 user.setState(UserState.INVITE_SELECT_FRIEND);
                 break;
 
             case "📥 Мои приглашения":
-                sendText(chatId, "Ваши приглашения (пока в разработке)");
+                sendMessage(chatId, "Ваши приглашения (пока в разработке)");
                 break;
 
             default:
-                sendText(chatId, "Пожалуйста, используйте кнопки меню.",
+                sendMessage(chatId, "Пожалуйста, используйте кнопки меню.",
                         keyboardService.getMainMenuKeyboard());
         }
 
         botUserService.save(user);
     }
 
-    private void sendText(Long chatId, String text) {
-        sendText(chatId, text, null);
+    // ==================== Вспомогательные методы ====================
+
+    private void sendMessage(Long chatId, String text) {
+        sendMessage(chatId, text, null);
     }
 
-    private void sendText(Long chatId, String text, Object replyMarkup) {
+    private void sendMessage(Long chatId, String text, ReplyKeyboard replyMarkup) {
         SendMessage sendMessage = SendMessage.builder()
-                .chatId(chatId.toString())
+                .chatId(chatId)
                 .text(text)
                 .build();
 
@@ -112,7 +115,7 @@ public class MessageHandler {
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
+            log.error("Failed to send message to {}: {}", chatId, e.getMessage(), e);
         }
     }
 

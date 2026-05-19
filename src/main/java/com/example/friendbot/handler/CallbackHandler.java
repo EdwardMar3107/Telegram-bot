@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
@@ -43,38 +44,35 @@ public class CallbackHandler {
             processCallback(user, data, callbackId);
         } catch (Exception e) {
             log.error("Error processing callback {} from {}", data, chatId, e);
-            answerCallback(callbackId, "Произошла ошибка");
+            answerCallback(callbackId, "❌ Произошла ошибка");
         }
     }
 
     private void processCallback(BotUser user, String data, String callbackId) throws TelegramApiException {
         Long chatId = user.getChatId();
 
-        // Ответ на callback (чтобы кнопка перестала крутиться)
+        // Всегда отвечаем на callback, чтобы кнопка перестала крутиться
         answerCallback(callbackId);
 
         if (data.startsWith("select_friend:")) {
             handleSelectFriend(user, data);
-
         } else if (data.startsWith("select_place:")) {
             handleSelectPlace(user, data);
-
         } else if (data.startsWith("confirm_invite:")) {
             handleConfirmInvite(user, data);
-
         } else if (data.startsWith("accept_invite:")) {
             handleAcceptInvite(data);
-
         } else if (data.startsWith("decline_invite:")) {
             handleDeclineInvite(data);
-
         } else if (data.equals("add_new_friend")) {
-            sendMessage(chatId, "Как добавить друга?", keyboardService.getCancelKeyboard());
+            sendMessage(chatId, "Как хочешь добавить друга?", keyboardService.getCancelKeyboard());
             user.setState(UserState.ADD_FRIEND_MENU);
-
+            botUserService.save(user);
         } else if (data.equals("cancel_action") || data.startsWith("cancel_invite:")) {
-            sendMessage(chatId, "Действие отменено.", keyboardService.getMainMenuKeyboard());
+            sendMessage(chatId, "✅ Действие отменено.", keyboardService.getMainMenuKeyboard());
             resetToIdle(user);
+        } else {
+            sendMessage(chatId, "Неизвестное действие.");
         }
     }
 
@@ -82,7 +80,7 @@ public class CallbackHandler {
         String friendId = data.split(":")[1];
         user.putSession("selectedFriendId", friendId);
 
-        sendMessage(user.getChatId(), "Выберите место:",
+        sendMessage(user.getChatId(), "Выберите место для встречи:",
                 keyboardService.getPlacesSelectionKeyboard(user.getChatId(), friendId));
 
         user.setState(UserState.INVITE_SELECT_PLACE);
@@ -92,20 +90,18 @@ public class CallbackHandler {
     private void handleSelectPlace(BotUser user, String data) {
         String[] parts = data.split(":");
         String placeId = parts[1];
-        // String friendId = parts[2]; // если передавали
 
         user.putSession("selectedPlaceId", placeId);
 
-        sendMessage(user.getChatId(), "Введите дату встречи (например: 25.05.2026):");
+        sendMessage(user.getChatId(), "Введите дату встречи (в формате ДД.ММ.ГГГГ):");
         user.setState(UserState.INVITE_ENTER_DATE);
         botUserService.save(user);
     }
 
     private void handleConfirmInvite(BotUser user, String data) {
-        // Здесь будет создание инвайта
         String inviteId = data.split(":")[1];
-
-        sendMessage(user.getChatId(), "✅ Приглашение отправлено!",
+        // TODO: Создать инвайт через InviteService
+        sendMessage(user.getChatId(), "✅ Приглашение успешно отправлено!",
                 keyboardService.getMainMenuKeyboard());
         resetToIdle(user);
     }
@@ -113,7 +109,7 @@ public class CallbackHandler {
     private void handleAcceptInvite(String data) {
         String inviteId = data.split(":")[1];
         inviteService.acceptInvite(inviteId);
-        // Можно отправить сообщение инициатору, что друг принял
+        // Можно добавить уведомление инициатору
     }
 
     private void handleDeclineInvite(String data) {
@@ -127,7 +123,7 @@ public class CallbackHandler {
         sendMessage(chatId, text, null);
     }
 
-    private void sendMessage(Long chatId, String text, Object replyMarkup) {
+    private void sendMessage(Long chatId, String text, ReplyKeyboard replyMarkup) {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
@@ -140,7 +136,7 @@ public class CallbackHandler {
         try {
             bot.execute(message);
         } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
+            log.error("Failed to send message to {}: {}", chatId, e.getMessage(), e);
         }
     }
 
@@ -157,7 +153,7 @@ public class CallbackHandler {
         try {
             bot.execute(answer);
         } catch (TelegramApiException e) {
-            log.warn("Failed to answer callback", e);
+            log.warn("Failed to answer callback query", e);
         }
     }
 

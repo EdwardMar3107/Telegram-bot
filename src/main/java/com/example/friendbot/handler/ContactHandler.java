@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
@@ -29,7 +30,7 @@ public class ContactHandler {
         Contact contact = message.getContact();
 
         if (contact == null) {
-            sendText(chatId, "Контакт не получен.");
+            sendMessage(chatId, "Контакт не получен.");
             return;
         }
 
@@ -43,7 +44,7 @@ public class ContactHandler {
             processContact(user, contact);
         } catch (Exception e) {
             log.error("Error processing contact from {}", chatId, e);
-            sendText(chatId, "Произошла ошибка при обработке контакта.");
+            sendMessage(chatId, "Произошла ошибка при обработке контакта.");
         }
     }
 
@@ -51,33 +52,34 @@ public class ContactHandler {
         Long ownerChatId = user.getChatId();
         String firstName = contact.getFirstName();
         String phoneNumber = contact.getPhoneNumber();
-        Long friendChatId = contact.getUserId(); // может быть null, если пользователь скрыл ID
+        Long friendChatId = contact.getUserId();
 
-        // Если друг уже писал боту, у него будет chatId
-        if (friendChatId != null) {
-            // Проверяем, не добавляет ли пользователь самого себя
-            if (friendChatId.equals(ownerChatId)) {
-                sendText(ownerChatId, "🤦 Ты не можешь добавить самого себя в друзья.");
-                resetToIdle(user);
-                return;
-            }
+        if (friendChatId != null && friendChatId.equals(ownerChatId)) {
+            sendMessage(ownerChatId, "🤦 Ты не можешь добавить самого себя в друзья.");
+            resetToIdle(user);
+            return;
         }
 
         // Добавляем друга
         friendService.addFriend(ownerChatId, firstName, friendChatId, phoneNumber);
 
-        sendText(ownerChatId,
+        sendMessage(ownerChatId,
                 "✅ Друг **" + firstName + "** успешно добавлен!",
                 keyboardService.getMainMenuKeyboard());
 
         resetToIdle(user);
     }
 
-    private void sendText(Long chatId, String text) {
-        sendText(chatId, text, null);
+    // ==================== Вспомогательные методы ====================
+
+    private void sendMessage(Long chatId, String text) {
+        sendMessage(chatId, text, null);
     }
 
-    private void sendText(Long chatId, String text, Object replyMarkup) {
+    /**
+     * Основной метод отправки сообщений
+     */
+    private void sendMessage(Long chatId, String text, ReplyKeyboard replyMarkup) {
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
@@ -90,7 +92,7 @@ public class ContactHandler {
         try {
             bot.execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
+            log.error("Failed to send message to {}: {}", chatId, e.getMessage(), e);
         }
     }
 
