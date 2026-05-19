@@ -16,11 +16,8 @@ public interface InviteRepository extends MongoRepository<Invite, String> {
     List<Invite> findByToChatIdAndStatus(Long toChatId, InviteStatus status);
     List<Invite> findByFromChatIdAndStatus(Long fromChatId, InviteStatus status);
 
-    /**
-     * Find invite between two users
-     */
     Optional<Invite> findByFromChatIdAndToChatIdAndStatus(
-            Long fromChatId, Long toChatId, Invite.InviteStatus status);
+            Long fromChatId, Long toChatId, InviteStatus status);
 
     List<Invite> findByToChatIdAndStatusOrderByCreatedAtDesc(
             Long toChatId, InviteStatus status);
