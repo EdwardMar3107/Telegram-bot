@@ -51,10 +51,7 @@ public class BotUserServiceImpl implements BotUserService {
     @Override
     @Transactional
     public void updateLastActivity(Long chatId) {
-        botUserRepository.findByChatId(chatId).ifPresent(user -> {
-            user.updateLastActivity();
-            botUserRepository.save(user);
-        });
+        botUserRepository.findByChatId(chatId).ifPresent(botUserRepository::save);
     }
 
     @Override
