@@ -24,7 +24,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public Friend addFriend(Long ownerChatId, String name, Long friendChatId, String phone) {
-        BotUser user = botUserService.getByChatIdOrThrow(ownerChatId); // используем новый метод
+        BotUser user = botUserService.getByChatIdOrThrow(ownerChatId);
 
         // Проверка на дубликат
         boolean exists = user.getFriends().stream()
