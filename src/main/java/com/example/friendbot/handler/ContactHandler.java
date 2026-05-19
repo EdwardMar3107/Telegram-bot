@@ -76,9 +76,6 @@ public class ContactHandler {
         sendMessage(chatId, text, null);
     }
 
-    /**
-     * Основной метод отправки сообщений
-     */
     private void sendMessage(Long chatId, String text, ReplyKeyboard replyMarkup) {
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(chatId)

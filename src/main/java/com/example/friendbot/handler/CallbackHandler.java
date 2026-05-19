@@ -3,7 +3,6 @@ package com.example.friendbot.handler;
 import com.example.friendbot.bot.FriendInviteBot;
 import com.example.friendbot.model.BotUser;
 import com.example.friendbot.service.BotUserService;
-import com.example.friendbot.service.FriendService;
 import com.example.friendbot.service.InviteService;
 import com.example.friendbot.service.KeyboardService;
 import com.example.friendbot.state.UserState;
@@ -22,7 +21,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class CallbackHandler {
 
     private final BotUserService botUserService;
-    private final FriendService friendService;
     private final InviteService inviteService;
     private final KeyboardService keyboardService;
     private final FriendInviteBot bot;
@@ -51,7 +49,6 @@ public class CallbackHandler {
     private void processCallback(BotUser user, String data, String callbackId) throws TelegramApiException {
         Long chatId = user.getChatId();
 
-        // Всегда отвечаем на callback, чтобы кнопка перестала крутиться
         answerCallback(callbackId);
 
         if (data.startsWith("select_friend:")) {
@@ -100,7 +97,6 @@ public class CallbackHandler {
 
     private void handleConfirmInvite(BotUser user, String data) {
         String inviteId = data.split(":")[1];
-        // TODO: Создать инвайт через InviteService
         sendMessage(user.getChatId(), "✅ Приглашение успешно отправлено!",
                 keyboardService.getMainMenuKeyboard());
         resetToIdle(user);
@@ -116,8 +112,6 @@ public class CallbackHandler {
         String inviteId = data.split(":")[1];
         inviteService.declineInvite(inviteId);
     }
-
-    // ==================== Вспомогательные методы ====================
 
     private void sendMessage(Long chatId, String text) {
         sendMessage(chatId, text, null);

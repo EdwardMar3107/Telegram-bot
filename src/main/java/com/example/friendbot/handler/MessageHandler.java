@@ -96,8 +96,6 @@ public class MessageHandler {
         botUserService.save(user);
     }
 
-    // ==================== Вспомогательные методы ====================
-
     private void sendMessage(Long chatId, String text) {
         sendMessage(chatId, text, null);
     }
