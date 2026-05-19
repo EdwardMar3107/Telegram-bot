@@ -1,10 +1,12 @@
 package com.example.friendbot.bot;
 
 import com.example.friendbot.config.BotConfig;
+import com.example.friendbot.handler.TelegramUpdateHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Slf4j
 @Component
