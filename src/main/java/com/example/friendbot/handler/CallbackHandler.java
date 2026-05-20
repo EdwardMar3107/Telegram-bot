@@ -3,8 +3,9 @@ package com.example.friendbot.handler;
 import com.example.friendbot.bot.FriendInviteBot;
 import com.example.friendbot.model.BotUser;
 import com.example.friendbot.service.BotUserService;
+import com.example.friendbot.service.FriendService;
 import com.example.friendbot.service.InviteService;
-import com.example.friendbot.service.KeyboardService;
+import com.example.friendbot.keyboard.KeyboardService;
 import com.example.friendbot.state.UserState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class CallbackHandler {
 
     private final BotUserService botUserService;
+    private final FriendService friendService;
     private final InviteService inviteService;
     private final KeyboardService keyboardService;
     private final FriendInviteBot bot;
@@ -77,8 +79,11 @@ public class CallbackHandler {
         String friendId = data.split(":")[1];
         user.putSession("selectedFriendId", friendId);
 
+        // Получаем список мест и передаём в KeyboardService
+        var places = friendService.getPlacesByFriend(user.getChatId(), friendId);
+
         sendMessage(user.getChatId(), "Выберите место для встречи:",
-                keyboardService.getPlacesSelectionKeyboard(user.getChatId(), friendId));
+                keyboardService.getPlacesSelectionKeyboard(places, friendId));
 
         user.setState(UserState.INVITE_SELECT_PLACE);
         botUserService.save(user);
@@ -96,7 +101,7 @@ public class CallbackHandler {
     }
 
     private void handleConfirmInvite(BotUser user, String data) {
-        String inviteId = data.split(":")[1];
+        // String inviteId = data.split(":")[1]; // пока не используем
         sendMessage(user.getChatId(), "✅ Приглашение успешно отправлено!",
                 keyboardService.getMainMenuKeyboard());
         resetToIdle(user);
@@ -105,13 +110,14 @@ public class CallbackHandler {
     private void handleAcceptInvite(String data) {
         String inviteId = data.split(":")[1];
         inviteService.acceptInvite(inviteId);
-        // Можно добавить уведомление инициатору
     }
 
     private void handleDeclineInvite(String data) {
         String inviteId = data.split(":")[1];
         inviteService.declineInvite(inviteId);
     }
+
+    // ==================== Вспомогательные методы ====================
 
     private void sendMessage(Long chatId, String text) {
         sendMessage(chatId, text, null);

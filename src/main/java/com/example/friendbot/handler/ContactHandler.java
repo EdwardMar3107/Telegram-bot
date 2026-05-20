@@ -4,7 +4,7 @@ import com.example.friendbot.bot.FriendInviteBot;
 import com.example.friendbot.model.BotUser;
 import com.example.friendbot.service.BotUserService;
 import com.example.friendbot.service.FriendService;
-import com.example.friendbot.service.KeyboardService;
+import com.example.friendbot.keyboard.KeyboardService;
 import com.example.friendbot.state.UserState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +43,8 @@ public class ContactHandler {
         try {
             processContact(user, contact);
         } catch (Exception e) {
-            log.error("Error processing contact from {}", chatId, e);
-            sendMessage(chatId, "Произошла ошибка при обработке контакта.");
+            log.error("Error processing contact from user {}", chatId, e);
+            sendMessage(chatId, "❌ Произошла ошибка при обработке контакта.");
         }
     }
 
@@ -54,6 +54,7 @@ public class ContactHandler {
         String phoneNumber = contact.getPhoneNumber();
         Long friendChatId = contact.getUserId();
 
+        // Защита от добавления самого себя
         if (friendChatId != null && friendChatId.equals(ownerChatId)) {
             sendMessage(ownerChatId, "🤦 Ты не можешь добавить самого себя в друзья.");
             resetToIdle(user);
@@ -70,24 +71,22 @@ public class ContactHandler {
         resetToIdle(user);
     }
 
-    // ==================== Вспомогательные методы ====================
-
     private void sendMessage(Long chatId, String text) {
         sendMessage(chatId, text, null);
     }
 
     private void sendMessage(Long chatId, String text, ReplyKeyboard replyMarkup) {
-        SendMessage sendMessage = SendMessage.builder()
+        SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
                 .build();
 
         if (replyMarkup != null) {
-            sendMessage.setReplyMarkup(replyMarkup);
+            message.setReplyMarkup(replyMarkup);
         }
 
         try {
-            bot.execute(sendMessage);
+            bot.execute(message);
         } catch (TelegramApiException e) {
             log.error("Failed to send message to {}: {}", chatId, e.getMessage(), e);
         }
