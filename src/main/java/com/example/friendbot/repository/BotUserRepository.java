@@ -8,9 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface BotUserRepository extends MongoRepository<BotUser, Long> {
-
-    Optional<BotUser> findByChatId(Long chatId);
-    boolean existsByChatId(Long chatId);
     Optional<BotUser> findByPhone(String phone);
 }
 
