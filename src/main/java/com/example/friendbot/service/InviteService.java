@@ -10,7 +10,7 @@ public interface InviteService {
 
     Invite createInvite(Long fromChatId, Long toChatId, String placeId, String placeName, LocalDateTime dateTime);
 
-    List<Invite> getSentInvites(Long fromChatId);
+    List<Invite> getPendingSentInvites(Long fromChatId);
     List<Invite> getReceivedInvites(Long toChatId);
     List<Invite> getPendingReceivedInvites(Long toChatId);
 

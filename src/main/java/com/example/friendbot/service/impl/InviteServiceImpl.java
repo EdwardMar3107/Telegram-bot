@@ -28,7 +28,7 @@ public class InviteServiceImpl implements InviteService {
     }
 
     @Override
-    public List<Invite> getSentInvites(Long fromChatId) {
+    public List<Invite> getPendingSentInvites(Long fromChatId) {
         return inviteRepository.findByFromChatIdAndStatusOrderByCreatedAtDesc(fromChatId, InviteStatus.PENDING);
     }
 
