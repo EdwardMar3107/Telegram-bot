@@ -6,13 +6,14 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class Place {
 
-    private String id;
+    private String id = UUID.randomUUID().toString().substring(0, 8);
 
     private String name;
 
@@ -27,14 +28,12 @@ public class Place {
     public Place(String name, String address) {
         this.name = name;
         this.address = address;
-        this.createdAt = LocalDateTime.now();
     }
 
     public Place(String name, String address, String comment) {
         this.name = name;
         this.address = address;
         this.comment = comment;
-        this.createdAt = LocalDateTime.now();
     }
 
     public String getDisplayName() {

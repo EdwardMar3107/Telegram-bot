@@ -8,13 +8,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class Friend {
 
-    private String id;
+    private String id = UUID.randomUUID().toString().substring(0, 8);
 
     private String name;
 
