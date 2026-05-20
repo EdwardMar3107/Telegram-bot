@@ -34,7 +34,6 @@ public class BotUser {
 
     // Embedded документы
     private List<Friend> friends = new ArrayList<>();
-    private List<Place> places = new ArrayList<>();
 
     // Сессионные данные (временные)
     private Map<String, String> sessionData = new HashMap<>();
@@ -46,8 +45,10 @@ public class BotUser {
         sessionData.put(key, value);
     }
 
-    public String getSession(String key) {
-        return sessionData.get(key);
+    public String getSessionOrThrow(String key) {
+        String value = sessionData.get(key);
+        if (value == null) throw new IllegalStateException("Session key not found: " + key);
+        return value;
     }
 
     public String getSessionOrDefault(String key, String defaultValue) {
