@@ -88,6 +88,13 @@ public class KeyboardServiceImpl implements KeyboardService {
             ));
         }
 
+        rows.add(List.of(
+                InlineKeyboardButton.builder()
+                        .text("◀️ Назад к друзьям")
+                        .callbackData("back_to_friends")
+                        .build()
+        ));
+
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -126,6 +133,22 @@ public class KeyboardServiceImpl implements KeyboardService {
                         .callbackData("cancel_action")
                         .build())
         ));
+        return markup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup getRequestContactKeyboard() {
+        KeyboardButton contactBtn = new KeyboardButton("📱 Выбрать из контактов");
+        contactBtn.setRequestContact(true);
+
+        KeyboardRow row = new KeyboardRow();
+        row.add(contactBtn);
+
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        markup.setKeyboard(List.of(row));
+        markup.setResizeKeyboard(true);
+        markup.setOneTimeKeyboard(true);
+        markup.setSelective(true);
         return markup;
     }
 }

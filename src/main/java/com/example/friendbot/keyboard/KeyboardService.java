@@ -21,4 +21,6 @@ public interface KeyboardService {
 
     InlineKeyboardMarkup getCancelKeyboard();
 
+    ReplyKeyboardMarkup getRequestContactKeyboard();
+
 }
