@@ -18,7 +18,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FriendServiceImpl implements FriendService {
 
-    private final BotUserRepository botUserRepository;
     private final BotUserService botUserService;
 
     @Override
@@ -39,7 +38,7 @@ public class FriendServiceImpl implements FriendService {
         friend.setId(UUID.randomUUID().toString());
 
         user.addFriend(friend);
-        botUserRepository.save(user);
+        botUserService.save(user);
 
         return friend;
     }
@@ -76,7 +75,7 @@ public class FriendServiceImpl implements FriendService {
         place.setId(UUID.randomUUID().toString());
 
         friend.addPlace(place);
-        botUserRepository.save(user);
+        botUserService.save(user);
 
         return place;
     }
