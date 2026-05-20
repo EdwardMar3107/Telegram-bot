@@ -1,9 +1,8 @@
-package com.example.friendbot.service.impl;
+package com.example.friendbot.keyboard.impl;
 
+import com.example.friendbot.keyboard.KeyboardService;
 import com.example.friendbot.model.Friend;
 import com.example.friendbot.model.Place;
-import com.example.friendbot.service.FriendService;
-import com.example.friendbot.service.KeyboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -18,8 +17,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class KeyboardServiceImpl implements KeyboardService {
-
-    private final FriendService friendService;
 
     @Override
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
@@ -45,9 +42,7 @@ public class KeyboardServiceImpl implements KeyboardService {
     }
 
     @Override
-    public InlineKeyboardMarkup getFriendsSelectionKeyboard(Long ownerChatId) {
-        List<Friend> friends = friendService.getAllFriends(ownerChatId);
-
+    public InlineKeyboardMarkup getFriendsSelectionKeyboard(List<Friend> friends) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         for (Friend friend : friends) {
@@ -59,21 +54,12 @@ public class KeyboardServiceImpl implements KeyboardService {
             ));
         }
 
-        if (friends.isEmpty()) {
-            rows.add(List.of(
-                    InlineKeyboardButton.builder()
-                            .text("➕ Добавить первого друга")
-                            .callbackData("add_new_friend")
-                            .build()
-            ));
-        } else {
-            rows.add(List.of(
-                    InlineKeyboardButton.builder()
-                            .text("➕ Добавить друга")
-                            .callbackData("add_new_friend")
-                            .build()
-            ));
-        }
+        rows.add(List.of(
+                InlineKeyboardButton.builder()
+                        .text(friends.isEmpty() ? "➕ Добавить первого друга" : "➕ Добавить друга")
+                        .callbackData("add_new_friend")
+                        .build()
+        ));
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
@@ -81,9 +67,7 @@ public class KeyboardServiceImpl implements KeyboardService {
     }
 
     @Override
-    public InlineKeyboardMarkup getPlacesSelectionKeyboard(Long ownerChatId, String friendId) {
-        List<Place> places = friendService.getPlacesByFriend(ownerChatId, friendId);
-
+    public InlineKeyboardMarkup getPlacesSelectionKeyboard(List<Place> places, String friendId) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         for (Place place : places) {
@@ -111,41 +95,25 @@ public class KeyboardServiceImpl implements KeyboardService {
 
     @Override
     public InlineKeyboardMarkup getInviteConfirmationKeyboard(String inviteId) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        rows.add(List.of(
-                InlineKeyboardButton.builder()
-                        .text("✅ Отправить приглашение")
-                        .callbackData("confirm_invite:" + inviteId)
-                        .build(),
-                InlineKeyboardButton.builder()
-                        .text("❌ Отмена")
-                        .callbackData("cancel_invite:" + inviteId)
-                        .build()
-        ));
-
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(rows);
+        markup.setKeyboard(List.of(
+                List.of(
+                        InlineKeyboardButton.builder().text("✅ Отправить приглашение").callbackData("confirm_invite:" + inviteId).build(),
+                        InlineKeyboardButton.builder().text("❌ Отмена").callbackData("cancel_invite:" + inviteId).build()
+                )
+        ));
         return markup;
     }
 
     @Override
     public InlineKeyboardMarkup getInviteActionKeyboard(String inviteId) {
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        rows.add(List.of(
-                InlineKeyboardButton.builder()
-                        .text("✅ Принять")
-                        .callbackData("accept_invite:" + inviteId)
-                        .build(),
-                InlineKeyboardButton.builder()
-                        .text("❌ Отклонить")
-                        .callbackData("decline_invite:" + inviteId)
-                        .build()
-        ));
-
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(rows);
+        markup.setKeyboard(List.of(
+                List.of(
+                        InlineKeyboardButton.builder().text("✅ Принять").callbackData("accept_invite:" + inviteId).build(),
+                        InlineKeyboardButton.builder().text("❌ Отклонить").callbackData("decline_invite:" + inviteId).build()
+                )
+        ));
         return markup;
     }
 
@@ -160,10 +128,4 @@ public class KeyboardServiceImpl implements KeyboardService {
         ));
         return markup;
     }
-
-    @Override
-    public InlineKeyboardMarkup getEmptyInlineKeyboard() {
-        return new InlineKeyboardMarkup(); // пустая клавиатура
-    }
 }
-
