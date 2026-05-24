@@ -26,7 +26,7 @@ public class MessageSender {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode("Markdown") // поддержка **жирного** и _курсива_
+                .parseMode("Markdown")
                 .build();
 
         if (keyboard != null) {
