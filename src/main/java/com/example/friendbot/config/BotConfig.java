@@ -12,9 +12,12 @@ import org.springframework.validation.annotation.Validated;
 @Getter
 @Setter
 @Validated
-@NotBlank
 public class BotConfig {
+
+    @NotBlank
     private String token;
+
+    @NotBlank
     private String username;
 }
 
