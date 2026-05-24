@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Friend {
 
-    private String id = UUID.randomUUID().toString().substring(0, 8);
+    private String id;
 
     private String name;
 
@@ -29,6 +29,7 @@ public class Friend {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Friend(String name, Long friendChatId, String phone) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.friendChatId = friendChatId;
         this.phone = phone;

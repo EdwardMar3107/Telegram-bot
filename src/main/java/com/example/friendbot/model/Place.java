@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Place {
 
-    private String id = UUID.randomUUID().toString().substring(0, 8);
+    private String id;
 
     private String name;
 
@@ -26,11 +26,13 @@ public class Place {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Place(String name, String address) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.address = address;
     }
 
     public Place(String name, String address, String comment) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.address = address;
         this.comment = comment;
