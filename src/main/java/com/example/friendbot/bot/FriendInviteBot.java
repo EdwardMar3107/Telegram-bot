@@ -2,7 +2,7 @@ package com.example.friendbot.bot;
 
 import com.example.friendbot.config.BotConfig;
 import com.example.friendbot.handler.TelegramUpdateHandler;
-import lombok.RequiredArgsConstructor;
+import com.example.friendbot.sender.MessageSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -10,32 +10,30 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class FriendInviteBot extends TelegramLongPollingBot {
 
     private final TelegramUpdateHandler updateHandler;
-    private final BotConfig botConfig;
 
-    @Override
-    public String getBotUsername() {
-        return botConfig.getUsername();
+    public FriendInviteBot(BotConfig botConfig,
+                           TelegramUpdateHandler updateHandler,
+                           MessageSender messageSender) {
+        super(botConfig.getToken());
+        this.updateHandler = updateHandler;
+        messageSender.setAbsSender(this);
     }
 
     @Override
-    public String getBotToken() {
-        return botConfig.getToken();
+    public String getBotUsername() {
+        return null;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (update == null) {
-            return;
-        }
-
+        if (update == null) return;
         try {
             updateHandler.handleUpdate(update);
         } catch (Exception e) {
-            log.error("Error processing update: {}", e.getMessage(), e);
+            log.error("Ошибка при обработке update: {}", e.getMessage(), e);
         }
     }
 }

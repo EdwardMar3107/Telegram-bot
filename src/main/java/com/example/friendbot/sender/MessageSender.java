@@ -1,6 +1,5 @@
 package com.example.friendbot.sender;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -11,12 +10,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class MessageSender {
 
-    private final AbsSender absSender;
+    private AbsSender absSender;
 
-    //отправка сообщений
+    public void setAbsSender(AbsSender absSender) {
+        this.absSender = absSender;
+    }
 
     public void send(Long chatId, String text) {
         send(chatId, text, null);
@@ -26,7 +26,7 @@ public class MessageSender {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode("Markdown") // поддержка **жирного** и _курсива_
+                .parseMode("Markdown")
                 .build();
 
         if (keyboard != null) {
@@ -39,8 +39,6 @@ public class MessageSender {
             log.error("Не удалось отправить сообщение в chatId {}: {}", chatId, e.getMessage());
         }
     }
-
-    //ответ на callback (убирает часики на кнопке)
 
     public void answerCallback(String callbackId) {
         answerCallback(callbackId, null);
@@ -55,7 +53,7 @@ public class MessageSender {
         try {
             absSender.execute(answer);
         } catch (TelegramApiException e) {
-            log.warn("Не удалось ответить на callback {}: {}", callbackId, e.getMessage());
+            log.warn("Не удалось ответить на callback: {}", e.getMessage());
         }
     }
 }
