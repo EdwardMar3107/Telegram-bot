@@ -12,19 +12,21 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Component
 public class FriendInviteBot extends TelegramLongPollingBot {
 
+    private final BotConfig botConfig;
     private final TelegramUpdateHandler updateHandler;
 
     public FriendInviteBot(BotConfig botConfig,
                            TelegramUpdateHandler updateHandler,
                            MessageSender messageSender) {
         super(botConfig.getToken());
+        this.botConfig = botConfig;
         this.updateHandler = updateHandler;
         messageSender.setAbsSender(this);
     }
 
     @Override
     public String getBotUsername() {
-        return null;
+        return botConfig.getUsername();
     }
 
     @Override
