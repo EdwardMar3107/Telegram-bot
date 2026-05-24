@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,14 +21,14 @@ public class InviteServiceImpl implements InviteService {
 
     @Override
     @Transactional
-    public Invite createInvite(Long fromChatId, Long toChatId, String placeId, String placeName, String dateTime) {
+    public Invite createInvite(Long fromChatId, Long toChatId, String placeId, String placeName, LocalDateTime dateTime) {
         Invite invite = new Invite(fromChatId, toChatId, placeId, placeName, dateTime);
         invite.setId(UUID.randomUUID().toString());
         return inviteRepository.save(invite);
     }
 
     @Override
-    public List<Invite> getSentInvites(Long fromChatId) {
+    public List<Invite> getPendingSentInvites(Long fromChatId) {
         return inviteRepository.findByFromChatIdAndStatusOrderByCreatedAtDesc(fromChatId, InviteStatus.PENDING);
     }
 

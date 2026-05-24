@@ -2,14 +2,15 @@ package com.example.friendbot.service;
 
 import com.example.friendbot.model.Invite;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface InviteService {
 
-    Invite createInvite(Long fromChatId, Long toChatId, String placeId, String placeName, String dateTime);
+    Invite createInvite(Long fromChatId, Long toChatId, String placeId, String placeName, LocalDateTime dateTime);
 
-    List<Invite> getSentInvites(Long fromChatId);
+    List<Invite> getPendingSentInvites(Long fromChatId);
     List<Invite> getReceivedInvites(Long toChatId);
     List<Invite> getPendingReceivedInvites(Long toChatId);
 

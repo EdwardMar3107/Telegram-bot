@@ -26,16 +26,16 @@ public class Place {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Place(String name, String address) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.address = address;
-        this.createdAt = LocalDateTime.now();
     }
 
     public Place(String name, String address, String comment) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.address = address;
         this.comment = comment;
-        this.createdAt = LocalDateTime.now();
     }
 
     public String getDisplayName() {

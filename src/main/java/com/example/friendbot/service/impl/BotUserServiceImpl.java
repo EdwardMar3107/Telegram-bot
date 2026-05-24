@@ -16,9 +16,8 @@ public class BotUserServiceImpl implements BotUserService {
     private final BotUserRepository botUserRepository;
 
     @Override
-    @Transactional
     public BotUser createOrGetUser(Long chatId, String username, String firstName) {
-        return botUserRepository.findByChatId(chatId)
+        return botUserRepository.findById(chatId)
                 .orElseGet(() -> {
                     BotUser newUser = new BotUser();
                     newUser.setChatId(chatId);
@@ -30,11 +29,10 @@ public class BotUserServiceImpl implements BotUserService {
 
     @Override
     public Optional<BotUser> findByChatId(Long chatId) {
-        return botUserRepository.findByChatId(chatId);
+        return botUserRepository.findById(chatId);
     }
 
     @Override
-    @Transactional
     public BotUser save(BotUser botUser) {
         if (botUser == null) {
             throw new IllegalArgumentException("BotUser cannot be null");
@@ -45,20 +43,19 @@ public class BotUserServiceImpl implements BotUserService {
 
     @Override
     public boolean existsByChatId(Long chatId) {
-        return botUserRepository.existsByChatId(chatId);
+        return botUserRepository.existsById(chatId);
     }
 
     @Override
     @Transactional
     public void updateLastActivity(Long chatId) {
-        botUserRepository.findByChatId(chatId).ifPresent(user -> {
+        botUserRepository.findById(chatId).ifPresent(user -> {
             user.updateLastActivity();
             botUserRepository.save(user);
         });
     }
 
     @Override
-    @Transactional
     public BotUser addPhone(Long chatId, String phone) {
         BotUser user = getByChatIdOrThrow(chatId);
         user.setPhone(phone);

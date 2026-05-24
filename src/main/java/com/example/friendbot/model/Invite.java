@@ -24,7 +24,7 @@ public class Invite {
     private String placeId;
     private String placeName;
 
-    private String dateTime;              // Можно позже заменить на LocalDateTime
+    private LocalDateTime dateTime;
 
     private InviteStatus status = InviteStatus.PENDING;
 
@@ -36,7 +36,7 @@ public class Invite {
         DECLINED
     }
 
-    public Invite(Long fromChatId, Long toChatId, String placeId, String placeName, String dateTime) {
+    public Invite(Long fromChatId, Long toChatId, String placeId, String placeName, LocalDateTime dateTime) {
         this.fromChatId = fromChatId;
         this.toChatId = toChatId;
         this.placeId = placeId;
@@ -61,6 +61,7 @@ public class Invite {
 
     @Override
     public String toString() {
-        return "Invite{id=" + id + ", from=" + fromChatId + ", to=" + toChatId + ", status=" + status + "}";
+        return "Invite{id=" + id + ", from=" + fromChatId + ", to=" + toChatId +
+                ", dateTime=" + dateTime + ", status=" + status + "}";
     }
 }

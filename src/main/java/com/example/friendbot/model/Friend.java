@@ -23,12 +23,13 @@ public class Friend {
 
     private String phone;
 
-    // Список мест, связанных именно с этим другом
+    //список мест, связанных именно с этим другом
     private List<Place> places = new ArrayList<>();
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Friend(String name, Long friendChatId, String phone) {
+        this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.friendChatId = friendChatId;
         this.phone = phone;
