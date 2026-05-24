@@ -2,7 +2,7 @@ package com.example.friendbot.state;
 
 public enum UserState {
 
-    // Основное состояние
+    //основное состояние
     IDLE,
 
     //Добавление друга
@@ -11,25 +11,25 @@ public enum UserState {
     ADDING_FRIEND_CHAT_ID,
     WAITING_FRIEND_CONTACT,
 
-    // Добавление места
+    //добавление места
     SELECTING_FRIEND_FOR_PLACE,
     ADDING_PLACE_NAME,
     ADDING_PLACE_ADDRESS,
 
-    //Создание и отправка инвайта
+    //создание и отправка инвайта
     INVITE_SELECT_FRIEND,
     INVITE_SELECT_PLACE,
     INVITE_ENTER_DATE,
     INVITE_ENTER_TIME,
     INVITE_CONFIRM,
 
-    //Просмотр информации
+    //просмотр информации
     VIEW_MY_FRIENDS,
     VIEW_FRIEND_PLACES,
     VIEW_MY_INVITES_SENT,
     VIEW_MY_INVITES_RECEIVED,
 
-    //Универсальные состояния
+    //универсальные состояния
     WAITING_TEXT_INPUT,
     CONFIRMATION_PENDING;
 

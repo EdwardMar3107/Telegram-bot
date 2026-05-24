@@ -32,10 +32,10 @@ public class BotUser {
 
     private UserState state = UserState.IDLE;
 
-    // Embedded документы
+    //embedded документы
     private List<Friend> friends = new ArrayList<>();
 
-    // Сессионные данные (временные)
+    //сессионные данные (временные)
     private Map<String, String> sessionData = new HashMap<>();
 
     private LocalDateTime createdAt = LocalDateTime.now();

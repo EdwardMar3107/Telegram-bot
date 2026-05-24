@@ -16,17 +16,13 @@ public interface InviteRepository extends MongoRepository<Invite, String> {
     List<Invite> findByToChatIdAndStatus(Long toChatId, InviteStatus status);
     List<Invite> findByFromChatIdAndStatus(Long fromChatId, InviteStatus status);
 
-    Optional<Invite> findByFromChatIdAndToChatIdAndStatus(
-            Long fromChatId, Long toChatId, InviteStatus status);
+    Optional<Invite> findByFromChatIdAndToChatIdAndStatus(Long fromChatId, Long toChatId, InviteStatus status);
 
-    List<Invite> findByToChatIdAndStatusOrderByCreatedAtDesc(
-            Long toChatId, InviteStatus status);
+    List<Invite> findByToChatIdAndStatusOrderByCreatedAtDesc(Long toChatId, InviteStatus status);
 
-    List<Invite> findByFromChatIdAndStatusOrderByCreatedAtDesc(
-            Long fromChatId, InviteStatus status);
+    List<Invite> findByFromChatIdAndStatusOrderByCreatedAtDesc(Long fromChatId, InviteStatus status);
 
-    boolean existsByFromChatIdAndToChatIdAndStatus(
-            Long fromChatId, Long toChatId, InviteStatus status);
+    boolean existsByFromChatIdAndToChatIdAndStatus(Long fromChatId, Long toChatId, InviteStatus status);
 }
 
 

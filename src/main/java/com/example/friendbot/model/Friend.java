@@ -23,7 +23,7 @@ public class Friend {
 
     private String phone;
 
-    // Список мест, связанных именно с этим другом
+    //список мест, связанных именно с этим другом
     private List<Place> places = new ArrayList<>();
 
     private LocalDateTime createdAt = LocalDateTime.now();
