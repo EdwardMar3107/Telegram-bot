@@ -3,7 +3,6 @@ package com.example.friendbot.service.impl;
 import com.example.friendbot.model.BotUser;
 import com.example.friendbot.model.Friend;
 import com.example.friendbot.model.Place;
-import com.example.friendbot.repository.BotUserRepository;
 import com.example.friendbot.service.BotUserService;
 import com.example.friendbot.service.FriendService;
 import lombok.RequiredArgsConstructor;

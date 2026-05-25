@@ -303,8 +303,10 @@ public class CallbackHandler {
     }
 
     private void resetToIdle(BotUser user) {
-        user.setState(UserState.IDLE);
-        user.clearSession();
-        botUserService.save(user);
+        //загружаем свежий объект из БД чтобы не затереть изменения
+        BotUser freshUser = botUserService.getByChatIdOrThrow(user.getChatId());
+        freshUser.setState(UserState.IDLE);
+        freshUser.clearSession();
+        botUserService.save(freshUser);
     }
 }
