@@ -3,7 +3,6 @@ package com.example.friendbot.keyboard.impl;
 import com.example.friendbot.keyboard.KeyboardService;
 import com.example.friendbot.model.Friend;
 import com.example.friendbot.model.Place;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -15,17 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class KeyboardServiceImpl implements KeyboardService {
+
+    //главное менюю
 
     @Override
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        keyboardMarkup.setResizeKeyboard(true);
-        keyboardMarkup.setOneTimeKeyboard(false);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("👥 Мои друзья"));
         row1.add(new KeyboardButton("➕ Добавить друга"));
@@ -34,12 +28,14 @@ public class KeyboardServiceImpl implements KeyboardService {
         row2.add(new KeyboardButton("📨 Новое приглашение"));
         row2.add(new KeyboardButton("📥 Мои приглашения"));
 
-        keyboard.add(row1);
-        keyboard.add(row2);
-
-        keyboardMarkup.setKeyboard(keyboard);
-        return keyboardMarkup;
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        markup.setKeyboard(List.of(row1, row2));
+        markup.setResizeKeyboard(true);
+        markup.setOneTimeKeyboard(false);
+        return markup;
     }
+
+    //список друзей
 
     @Override
     public InlineKeyboardMarkup getFriendsSelectionKeyboard(List<Friend> friends) {
@@ -61,10 +57,10 @@ public class KeyboardServiceImpl implements KeyboardService {
                         .build()
         ));
 
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(rows);
-        return markup;
+        return buildInline(rows);
     }
+
+    //список мест
 
     @Override
     public InlineKeyboardMarkup getPlacesSelectionKeyboard(List<Place> places, String friendId) {
@@ -82,12 +78,13 @@ public class KeyboardServiceImpl implements KeyboardService {
         if (places.isEmpty()) {
             rows.add(List.of(
                     InlineKeyboardButton.builder()
-                            .text("➕ Добавить место")
+                            .text("➕ Добавить место для этого друга")
                             .callbackData("add_place:" + friendId)
                             .build()
             ));
         }
 
+        //кнопка "Назад" добавляется ДО setKeyboard
         rows.add(List.of(
                 InlineKeyboardButton.builder()
                         .text("◀️ Назад к друзьям")
@@ -95,60 +92,75 @@ public class KeyboardServiceImpl implements KeyboardService {
                         .build()
         ));
 
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(rows);
-        return markup;
+        return buildInline(rows);
     }
+
+    //подтверждение инвайта
 
     @Override
     public InlineKeyboardMarkup getInviteConfirmationKeyboard(String inviteId) {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(
-                List.of(
-                        InlineKeyboardButton.builder().text("✅ Отправить приглашение").callbackData("confirm_invite:" + inviteId).build(),
-                        InlineKeyboardButton.builder().text("❌ Отмена").callbackData("cancel_invite:" + inviteId).build()
-                )
-        ));
-        return markup;
+        return buildInline(List.of(List.of(
+                InlineKeyboardButton.builder()
+                        .text("✅ Отправить приглашение")
+                        .callbackData("confirm_invite:" + inviteId)
+                        .build(),
+                InlineKeyboardButton.builder()
+                        .text("❌ Отмена")
+                        .callbackData("cancel_invite:" + inviteId)
+                        .build()
+        )));
     }
+
+    //ответ на инвайт
 
     @Override
     public InlineKeyboardMarkup getInviteActionKeyboard(String inviteId) {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(
-                List.of(
-                        InlineKeyboardButton.builder().text("✅ Принять").callbackData("accept_invite:" + inviteId).build(),
-                        InlineKeyboardButton.builder().text("❌ Отклонить").callbackData("decline_invite:" + inviteId).build()
-                )
-        ));
-        return markup;
+        return buildInline(List.of(List.of(
+                InlineKeyboardButton.builder()
+                        .text("✅ Принять")
+                        .callbackData("accept_invite:" + inviteId)
+                        .build(),
+                InlineKeyboardButton.builder()
+                        .text("❌ Отклонить")
+                        .callbackData("decline_invite:" + inviteId)
+                        .build()
+        )));
     }
+
+    //кнопка отмены
 
     @Override
     public InlineKeyboardMarkup getCancelKeyboard() {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(
-                List.of(InlineKeyboardButton.builder()
+        return buildInline(List.of(List.of(
+                InlineKeyboardButton.builder()
                         .text("❌ Отмена")
                         .callbackData("cancel_action")
-                        .build())
-        ));
-        return markup;
+                        .build()
+        )));
     }
+
+    //запрос контакта - оставлен для совместимости с интерфейсом
 
     @Override
     public ReplyKeyboardMarkup getRequestContactKeyboard() {
-        KeyboardButton contactBtn = new KeyboardButton("📱 Выбрать из контактов");
-        contactBtn.setRequestContact(true);
+        //Telegram позволяет делиться только своим контактом через эту кнопку.
+        //для добавления друга используется ручной ввод.
+        KeyboardButton btn = new KeyboardButton("📱 Поделиться своим номером");
+        btn.setRequestContact(true);
 
         KeyboardRow row = new KeyboardRow();
-        row.add(contactBtn);
+        row.add(btn);
 
         ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
         markup.setKeyboard(List.of(row));
         markup.setResizeKeyboard(true);
         markup.setOneTimeKeyboard(true);
-        markup.setSelective(true);
+        return markup;
+    }
+
+    private InlineKeyboardMarkup buildInline(List<List<InlineKeyboardButton>> rows) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
         return markup;
     }
 }
