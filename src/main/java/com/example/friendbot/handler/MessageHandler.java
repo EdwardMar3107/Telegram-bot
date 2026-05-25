@@ -2,7 +2,6 @@ package com.example.friendbot.handler;
 
 import com.example.friendbot.keyboard.KeyboardService;
 import com.example.friendbot.model.BotUser;
-import com.example.friendbot.model.Friend;
 import com.example.friendbot.model.Invite;
 import com.example.friendbot.model.Place;
 import com.example.friendbot.sender.MessageSender;
@@ -30,7 +29,7 @@ public class MessageHandler {
     private final FriendService   friendService;
     private final InviteService   inviteService;
     private final KeyboardService keyboardService;
-    private final MessageSender sender;
+    private final MessageSender   sender;
 
     private static final DateTimeFormatter DATE_FORMATTER      = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final DateTimeFormatter TIME_FORMATTER      = DateTimeFormatter.ofPattern("HH:mm");
@@ -49,9 +48,15 @@ public class MessageHandler {
         if (text == null) return;
 
         try {
-            // /start всегда сбрасывает состояние, пользователь не застрянет
             if ("/start".equals(text)) {
                 handleStart(user);
+                return;
+            }
+
+            //кнопки главного меню работают из ЛЮБОГО состояния
+            if (isMainMenuButton(text) && user.getState() != UserState.IDLE) {
+                resetToIdle(user);
+                handleIdleState(user, text);
                 return;
             }
 
@@ -74,19 +79,16 @@ public class MessageHandler {
 
             case IDLE -> handleIdleState(user, text);
 
-            //добавление друга вручную
-            case ADDING_FRIEND_NAME -> handleAddingFriendName(user, text);
+            case ADDING_FRIEND_NAME    -> handleAddingFriendName(user, text);
             case ADDING_FRIEND_CHAT_ID -> handleAddingFriendChatId(user, text);
 
-            //добавление места
             case ADDING_PLACE_NAME    -> handleAddingPlaceName(user, text);
             case ADDING_PLACE_ADDRESS -> handleAddingPlaceAddress(user, text);
 
-            //создание инвайта
             case INVITE_ENTER_DATE -> handleInviteDate(user, text);
             case INVITE_ENTER_TIME -> handleInviteTime(user, text);
 
-            //состояния которые ждут нажатия кнопки, не текста
+            //эти состояния ждут нажатия кнопки (Callback), не текста
             case INVITE_SELECT_FRIEND,
                  INVITE_SELECT_PLACE,
                  INVITE_CONFIRM,
@@ -97,8 +99,7 @@ public class MessageHandler {
                  VIEW_FRIEND_PLACES,
                  VIEW_MY_INVITES_SENT,
                  VIEW_MY_INVITES_RECEIVED -> sender.send(chatId,
-                    "Используй кнопки для навигации.",
-                    keyboardService.getMainMenuKeyboard());
+                    "Используй кнопки для навигации или нажми /start для возврата в меню.");
 
             default -> {
                 sender.send(chatId, "Пожалуйста, используй кнопки меню.",
@@ -108,14 +109,14 @@ public class MessageHandler {
         }
     }
 
-    //IDLE обработка кнопок главного меню
+    //IDLE — обработка кнопок главного меню
 
     private void handleIdleState(BotUser user, String text) {
         Long chatId = user.getChatId();
 
         switch (text) {
             case "👥 Мои друзья" -> {
-                List<Friend> friends = friendService.getAllFriends(chatId);
+                var friends = friendService.getAllFriends(chatId);
                 if (friends.isEmpty()) {
                     sender.send(chatId,
                             "У тебя пока нет друзей. Добавь первого!",
@@ -131,16 +132,14 @@ public class MessageHandler {
 
             case "➕ Добавить друга" -> {
                 sender.send(chatId,
-                        "Как хочешь добавить друга?\n\n" +
-                                "• Отправь мне его контакт из Telegram 📱\n" +
-                                "• Или нажми кнопку ниже чтобы ввести вручную",
-                        keyboardService.getRequestContactKeyboard());
-                user.setState(UserState.ADD_FRIEND_MENU);
+                        "Введи имя друга:",
+                        keyboardService.getCancelKeyboard());
+                user.setState(UserState.ADDING_FRIEND_NAME);
                 botUserService.save(user);
             }
 
             case "📨 Новое приглашение" -> {
-                List<Friend> friends = friendService.getAllFriends(chatId);
+                var friends = friendService.getAllFriends(chatId);
                 if (friends.isEmpty()) {
                     sender.send(chatId,
                             "Сначала добавь друга — потом сможешь его пригласить!",
@@ -161,8 +160,7 @@ public class MessageHandler {
                             "У тебя нет новых приглашений.",
                             keyboardService.getMainMenuKeyboard());
                 } else {
-                    sender.send(chatId,
-                            "У тебя *" + pending.size() + "* новых приглашений:");
+                    sender.send(chatId, "У тебя *" + pending.size() + "* новых приглашений:");
                     for (Invite invite : pending) {
                         sender.send(chatId,
                                 "📍 *" + invite.getPlaceName() + "*\n" +
@@ -178,7 +176,7 @@ public class MessageHandler {
         }
     }
 
-    //добавление друга вручную
+    //добавление друга
 
     private void handleAddingFriendName(BotUser user, String text) {
         Long chatId = user.getChatId();
@@ -194,7 +192,8 @@ public class MessageHandler {
 
         sender.send(chatId,
                 "Введи Telegram ID друга.\n" +
-                        "Он может узнать его написав боту @userinfobot",
+                        "Он может узнать его написав боту @userinfobot\n\n" +
+                        "Или введи *0* если не знаешь ID — друг подключится автоматически когда сам напишет боту /start.",
                 keyboardService.getCancelKeyboard());
     }
 
@@ -203,16 +202,17 @@ public class MessageHandler {
 
         Long friendChatId;
         try {
-            friendChatId = Long.parseLong(text.trim());
+            long parsed = Long.parseLong(text.trim());
+            friendChatId = parsed == 0 ? null : parsed;
         } catch (NumberFormatException e) {
             sender.send(chatId,
-                    "❌ Это не похоже на Telegram ID. Должно быть число, например: 123456789\n" +
-                            "Попробуй ещё раз:");
-            return; // не сбрасываем состояние — даём попробовать снова
+                    "❌ Это не похоже на ID. Должно быть число, например: 123456789\n" +
+                            "Или введи *0* если не знаешь ID.\nПопробуй ещё раз:");
+            return;
         }
 
-        if (friendChatId.equals(chatId)) {
-            sender.send(chatId, "🤦 Ты не можешь добавить самого себя.");
+        if (friendChatId != null && friendChatId.equals(chatId)) {
+            sender.send(chatId, "🤦 Это твой собственный ID. Введи ID друга:");
             return;
         }
 
@@ -226,9 +226,11 @@ public class MessageHandler {
             return;
         }
 
-        sender.send(chatId,
-                "✅ *" + name + "* добавлен в друзья!",
-                keyboardService.getMainMenuKeyboard());
+        String status = friendChatId != null
+                ? "✅ *" + name + "* добавлен в друзья!"
+                : "✅ *" + name + "* добавлен!\nКогда он напишет боту /start — вы автоматически свяжетесь.";
+
+        sender.send(chatId, status, keyboardService.getMainMenuKeyboard());
         resetToIdle(user);
     }
 
@@ -247,7 +249,7 @@ public class MessageHandler {
         botUserService.save(user);
 
         sender.send(chatId,
-                "Введи адрес места (или отправь *пропустить* если адрес не нужен):",
+                "Введи адрес места.\nИли напиши *пропустить* если адрес не нужен:",
                 keyboardService.getCancelKeyboard());
     }
 
@@ -298,7 +300,6 @@ public class MessageHandler {
     private void handleInviteTime(BotUser user, String text) {
         Long chatId = user.getChatId();
 
-        //валидация формата
         try {
             TIME_FORMATTER.parse(text.trim());
         } catch (DateTimeParseException e) {
@@ -307,10 +308,10 @@ public class MessageHandler {
             return;
         }
 
-        String date      = user.getSessionOrDefault("inviteDate", null);
-        String friendId  = user.getSessionOrDefault("selectedFriendId", null);
-        String placeId   = user.getSessionOrDefault("selectedPlaceId", null);
-        String placeName = user.getSessionOrDefault("selectedPlaceName", "Место");
+        String date       = user.getSessionOrDefault("inviteDate", null);
+        String friendId   = user.getSessionOrDefault("selectedFriendId", null);
+        String placeId    = user.getSessionOrDefault("selectedPlaceId", null);
+        String placeName  = user.getSessionOrDefault("selectedPlaceName", "Место");
         String friendName = user.getSessionOrDefault("selectedFriendName", "Друг");
 
         if (date == null || friendId == null || placeId == null) {
@@ -320,7 +321,6 @@ public class MessageHandler {
             return;
         }
 
-        //парсим дату и время вместе
         LocalDateTime dateTime;
         try {
             dateTime = LocalDateTime.parse(date + " " + text.trim(), DATE_TIME_FORMATTER);
@@ -331,7 +331,6 @@ public class MessageHandler {
             return;
         }
 
-        //проверяем что дата не в прошлом
         if (dateTime.isBefore(LocalDateTime.now())) {
             sender.send(chatId, "❌ Дата встречи уже прошла. Введи другую дату:");
             user.setState(UserState.INVITE_ENTER_DATE);
@@ -339,10 +338,13 @@ public class MessageHandler {
             return;
         }
 
-        //получаем chatId друга
-        Optional<Friend> friendOpt = friendService.findFriendById(chatId, friendId);
+        Optional<com.example.friendbot.model.Friend> friendOpt =
+                friendService.findFriendById(chatId, friendId);
+
         if (friendOpt.isEmpty() || friendOpt.get().getFriendChatId() == null) {
-            sender.send(chatId, "❌ Не удалось найти друга. Начни заново.",
+            sender.send(chatId,
+                    "❌ Друг ещё не написал боту — нельзя отправить инвайт.\n" +
+                            "Попроси его написать /start боту.",
                     keyboardService.getMainMenuKeyboard());
             resetToIdle(user);
             return;
@@ -350,7 +352,6 @@ public class MessageHandler {
 
         Long friendChatId = friendOpt.get().getFriendChatId();
 
-        //проверяем нет ли уже pending инвайта
         if (inviteService.existsPendingInviteBetween(chatId, friendChatId)) {
             sender.send(chatId,
                     "⚠️ У тебя уже есть активное приглашение для этого друга.\n" +
@@ -360,22 +361,23 @@ public class MessageHandler {
             return;
         }
 
-        //создаём инвайт в БД, пока со статусом PENDING
-        Invite invite = inviteService.createInvite(chatId, friendChatId, placeId, placeName, dateTime);
+        com.example.friendbot.model.Invite invite =
+                inviteService.createInvite(chatId, friendChatId, placeId, placeName, dateTime);
 
-        //показываем итог и кнопки подтверждения
         user.setState(UserState.INVITE_CONFIRM);
         botUserService.save(user);
 
         sender.send(chatId,
                 "📋 *Детали встречи:*\n\n" +
-                        "👤 Друг: *"   + friendName + "*\n" +
-                        "📍 Место: *"  + placeName  + "*\n" +
-                        "📅 Дата: *"   + date       + "*\n" +
-                        "⏰ Время: *"  + text.trim() + "*\n\n" +
+                        "👤 Друг: *"  + friendName + "*\n" +
+                        "📍 Место: *" + placeName  + "*\n" +
+                        "📅 Дата: *"  + date       + "*\n" +
+                        "⏰ Время: *" + text.trim() + "*\n\n" +
                         "Отправить приглашение?",
                 keyboardService.getInviteConfirmationKeyboard(invite.getId()));
     }
+
+    // /start
 
     private void handleStart(BotUser user) {
         resetToIdle(user);
@@ -384,6 +386,13 @@ public class MessageHandler {
                         "Я помогу легко договариваться о встречах с друзьями.\n" +
                         "Выбери действие:",
                 keyboardService.getMainMenuKeyboard());
+    }
+
+    private boolean isMainMenuButton(String text) {
+        return "👥 Мои друзья".equals(text)     ||
+                "➕ Добавить друга".equals(text)  ||
+                "📨 Новое приглашение".equals(text) ||
+                "📥 Мои приглашения".equals(text);
     }
 
     private void resetToIdle(BotUser user) {
