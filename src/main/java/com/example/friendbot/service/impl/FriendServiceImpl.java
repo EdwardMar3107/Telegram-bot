@@ -34,7 +34,6 @@ public class FriendServiceImpl implements FriendService {
         }
 
         Friend friend = new Friend(name, friendChatId, phone);
-        friend.setId(UUID.randomUUID().toString());
 
         user.addFriend(friend);
         botUserService.save(user);
@@ -71,7 +70,6 @@ public class FriendServiceImpl implements FriendService {
         }
 
         Place place = new Place(placeName, address);
-        place.setId(UUID.randomUUID().toString());
 
         friend.addPlace(place);
         botUserService.save(user);
