@@ -20,7 +20,7 @@ public class ContactHandler {
     private final BotUserService  botUserService;
     private final FriendService   friendService;
     private final KeyboardService keyboardService;
-    private final MessageSender sender;
+    private final MessageSender   sender;
 
     public void handleContact(Message message) {
         Long    chatId  = message.getChatId();
@@ -41,7 +41,7 @@ public class ContactHandler {
             processContact(user, contact);
         } catch (Exception e) {
             log.error("Ошибка при обработке контакта от {}", chatId, e);
-            sender.send(chatId, "❌ Произошла ошибка при добавлении контакта.");
+            sender.send(chatId, "❌ Произошла ошибка при обработке контакта.");
             resetToIdle(user);
         }
     }
@@ -49,28 +49,41 @@ public class ContactHandler {
     private void processContact(BotUser user, Contact contact) {
         Long   ownerChatId  = user.getChatId();
         Long   friendChatId = contact.getUserId();
-        String firstName    = contact.getFirstName() != null ? contact.getFirstName() : "";
-        String lastName     = contact.getLastName()  != null ? " " + contact.getLastName() : "";
-        String name         = (firstName + lastName).trim();
-        String phone        = contact.getPhoneNumber() != null
-                ? contact.getPhoneNumber().replaceAll("[^0-9]", "") // нормализуем телефон
-                : null;
 
-        if (name.isBlank()) name = "Без имени";
-
-        //защита от добавления самого себя
+        //кнопка RequestContact всегда отправляет СВОЙ контакт
+        //поэтому userId всегда будет совпадать с chatId пользователя
+        //просто сохраняем телефон для матчинга и объясняем как добавить друга
         if (friendChatId != null && friendChatId.equals(ownerChatId)) {
+            //сохраняем свой телефон - пригодится для матчинга
+            if (contact.getPhoneNumber() != null) {
+                String phone = contact.getPhoneNumber().replaceAll("[^0-9]", "");
+                user.setPhone(phone);
+                botUserService.save(user);
+            }
+
             sender.send(ownerChatId,
-                    "🤦 Ты не можешь добавить самого себя в друзья.",
+                    "ℹ️ Telegram позволяет поделиться только своим контактом.\n\n" +
+                            "Чтобы добавить друга — используй кнопку *➕ Добавить друга* и введи его данные вручную.\n\n" +
+                            "Твой Telegram ID: `" + ownerChatId + "`\n" +
+                            "Друг может узнать свой ID написав боту @userinfobot",
                     keyboardService.getMainMenuKeyboard());
             resetToIdle(user);
             return;
         }
 
+        //этот блок на случай если вдруг придёт чужой контакт
+        String firstName = contact.getFirstName() != null ? contact.getFirstName() : "";
+        String lastName  = contact.getLastName()  != null ? " " + contact.getLastName() : "";
+        String name      = (firstName + lastName).trim();
+        if (name.isBlank()) name = "Без имени";
+
+        String phone = contact.getPhoneNumber() != null
+                ? contact.getPhoneNumber().replaceAll("[^0-9]", "")
+                : null;
+
         try {
             friendService.addFriend(ownerChatId, name, friendChatId, phone);
         } catch (IllegalArgumentException e) {
-            //дубликат - друг уже добавлен
             sender.send(ownerChatId,
                     "⚠️ *" + name + "* уже есть в твоём списке друзей.",
                     keyboardService.getMainMenuKeyboard());
